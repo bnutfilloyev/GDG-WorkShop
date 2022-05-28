@@ -1,5 +1,3 @@
-# Tutorial written for - Tensorflow 2.3.1
-
 import os
 import random
 import gym
@@ -210,7 +208,7 @@ class DQNAgent:
                 self.replay()
 
     def test(self):
-        self.load("cartpole-ddqn.h5")
+        self.load("Models/cartpole-ddqn.h5")
         for e in range(self.EPISODES):
             state = self.env.reset()
             state = np.reshape(state, [1, self.state_size])
@@ -229,5 +227,5 @@ class DQNAgent:
 if __name__ == "__main__":
     env_name = 'CartPole-v1'
     agent = DQNAgent(env_name)
-    agent.run()
-    # agent.test()
+    # agent.run()
+    agent.test()
