@@ -185,7 +185,7 @@ class DQNAgent:
             done = False
             i = 0
             while not done:
-                # self.env.render()
+                self.env.render()
                 action = self.act(state)
                 next_state, reward, done, _ = self.env.step(action)
                 next_state = np.reshape(next_state, [1, self.state_size])
@@ -218,7 +218,7 @@ class DQNAgent:
             done = False
             i = 0
             while not done:
-                # self.env.render()
+                self.env.render()
                 action = np.argmax(self.model.predict(state))
                 next_state, reward, done, _ = self.env.step(action)
                 state = np.reshape(next_state, [1, self.state_size])
