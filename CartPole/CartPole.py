@@ -1,4 +1,3 @@
-# Tutorial by www.pylessons.com
 # Tutorial written for - Tensorflow 2.3.1
 
 import os
