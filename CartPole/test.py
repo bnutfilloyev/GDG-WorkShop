@@ -6,6 +6,7 @@ for _ in range(1000):
 #    action = policy(observation)  # User-defined policy function
    observation, reward, done, info = env.step(1)
 
-#    if done:
-#       observation, info = env.reset(return_info=True)
+   if done:
+      observation, info = env.reset(return_info=True)
 env.close()
+
