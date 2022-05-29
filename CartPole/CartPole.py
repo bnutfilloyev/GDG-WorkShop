@@ -16,28 +16,32 @@ def OurModel(input_shape, action_space):
 
     # 'Dense' is the basic form of a neural network layer
     # Input Layer of state size(4) and Hidden Layer with 512 nodes
-    X = Dense(512, input_shape=input_shape, activation="relu", kernel_initializer='he_uniform')(X)
+    X = Dense(512, input_shape=input_shape, activation="relu",
+              kernel_initializer='he_uniform')(X)
 
     # Hidden layer with 256 nodes
     X = Dense(256, activation="relu", kernel_initializer='he_uniform')(X)
-    
+
     # Hidden layer with 64 nodes
     X = Dense(64, activation="relu", kernel_initializer='he_uniform')(X)
 
     # Output Layer with # of actions: 2 nodes (left, right)
-    X = Dense(action_space, activation="linear", kernel_initializer='he_uniform')(X)
+    X = Dense(action_space, activation="linear",
+              kernel_initializer='he_uniform')(X)
 
-    model = Model(inputs = X_input, outputs = X)
-    model.compile(loss="mean_squared_error", optimizer=RMSprop(lr=0.00025, rho=0.95, epsilon=0.01), metrics=["accuracy"])
+    model = Model(inputs=X_input, outputs=X)
+    model.compile(loss="mean_squared_error", optimizer=RMSprop(
+        lr=0.00025, rho=0.95, epsilon=0.01), metrics=["accuracy"])
 
     model.summary()
     return model
 
+
 class DQNAgent:
     def __init__(self, env_name):
-        self.env_name = env_name       
+        self.env_name = env_name
         self.env = gym.make(env_name)
-        self.env.seed(0)  
+        self.env.seed(0)
         # by default, CartPole-v1 has max episode steps = 500
         self.env._max_episode_steps = 4000
         self.state_size = self.env.observation_space.shape[0]
@@ -45,7 +49,7 @@ class DQNAgent:
 
         self.EPISODES = 1000
         self.memory = deque(maxlen=2000)
-        
+
         self.gamma = 0.95    # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
@@ -57,21 +61,25 @@ class DQNAgent:
         self.ddqn = True
         self.Soft_Update = False
 
-        self.TAU = 0.1 # target network soft update hyperparameter
+        self.TAU = 0.1  # target network soft update hyperparameter
 
         self.Save_Path = 'Models'
         self.scores, self.episodes, self.average = [], [], []
-        
+
         if self.ddqn:
             print("----------Double DQN--------")
-            self.Model_name = os.path.join(self.Save_Path,"DDQN_"+self.env_name+".h5")
+            self.Model_name = os.path.join(
+                self.Save_Path, "DDQN_"+self.env_name+".h5")
         else:
             print("-------------DQN------------")
-            self.Model_name = os.path.join(self.Save_Path,"DQN_"+self.env_name+".h5")
-        
+            self.Model_name = os.path.join(
+                self.Save_Path, "DQN_"+self.env_name+".h5")
+
         # create main model
-        self.model = OurModel(input_shape=(self.state_size,), action_space = self.action_size)
-        self.target_model = OurModel(input_shape=(self.state_size,), action_space = self.action_size)
+        self.model = OurModel(input_shape=(self.state_size,),
+                              action_space=self.action_size)
+        self.target_model = OurModel(input_shape=(
+            self.state_size,), action_space=self.action_size)
 
     # after some time interval update the target model to be same with model
     def update_target_model(self):
@@ -83,7 +91,8 @@ class DQNAgent:
             target_model_theta = self.target_model.get_weights()
             counter = 0
             for q_weight, target_weight in zip(q_model_theta, target_model_theta):
-                target_weight = target_weight * (1-self.TAU) + q_weight * self.TAU
+                target_weight = target_weight * \
+                    (1-self.TAU) + q_weight * self.TAU
                 target_model_theta[counter] = target_weight
                 counter += 1
             self.target_model.set_weights(target_model_theta)
@@ -104,7 +113,8 @@ class DQNAgent:
         if len(self.memory) < self.train_start:
             return
         # Randomly sample minibatch from the memory
-        minibatch = random.sample(self.memory, min(self.batch_size, self.batch_size))
+        minibatch = random.sample(self.memory, min(
+            self.batch_size, self.batch_size))
 
         state = np.zeros((self.batch_size, self.state_size))
         next_state = np.zeros((self.batch_size, self.state_size))
@@ -130,22 +140,23 @@ class DQNAgent:
             if done[i]:
                 target[i][action[i]] = reward[i]
             else:
-                if self.ddqn: # Double - DQN
+                if self.ddqn:  # Double - DQN
                     # current Q Network selects the action
                     # a'_max = argmax_a' Q(s', a')
                     a = np.argmax(target_next[i])
                     # target Q Network evaluates the action
                     # Q_max = Q_target(s', a'_max)
-                    target[i][action[i]] = reward[i] + self.gamma * (target_val[i][a])   
-                else: # Standard - DQN
+                    target[i][action[i]] = reward[i] + \
+                        self.gamma * (target_val[i][a])
+                else:  # Standard - DQN
                     # DQN chooses the max Q value among next actions
                     # selection and evaluation of action is on the target Q Network
                     # Q_max = max_a' Q_target(s', a')
-                    target[i][action[i]] = reward[i] + self.gamma * (np.amax(target_next[i]))
+                    target[i][action[i]] = reward[i] + \
+                        self.gamma * (np.amax(target_next[i]))
 
         # Train the Neural Network with batches
         self.model.fit(state, target, batch_size=self.batch_size, verbose=0)
-
 
     def load(self, name):
         self.model = load_model(name)
@@ -154,6 +165,7 @@ class DQNAgent:
         self.model.save(name)
 
     pylab.figure(figsize=(18, 9))
+
     def PlotModel(self, score, episode):
         self.scores.append(score)
         self.episodes.append(episode)
@@ -174,7 +186,7 @@ class DQNAgent:
             pass
 
         return str(self.average[-1])[:5]
-    
+
     def run(self):
         for e in range(self.EPISODES):
             state = self.env.reset()
@@ -196,11 +208,12 @@ class DQNAgent:
                 if done:
                     # every step update target model
                     self.update_target_model()
-                    
+
                     # every episode, plot the result
                     average = self.PlotModel(i, e)
-                     
-                    print("episode: {}/{}, score: {}, e: {:.2}, average: {}".format(e, self.EPISODES, i, self.epsilon, average))
+
+                    print("episode: {}/{}, score: {}, e: {:.2}, average: {}".format(e,
+                          self.EPISODES, i, self.epsilon, average))
                     if i == self.env._max_episode_steps:
                         print("Saving trained model as cartpole-ddqn.h5")
                         self.save("cartpole-ddqn.h5")
@@ -224,8 +237,9 @@ class DQNAgent:
                     print("episode: {}/{}, score: {}".format(e, self.EPISODES, i))
                     break
 
+
 if __name__ == "__main__":
     env_name = 'CartPole-v1'
     agent = DQNAgent(env_name)
-    # agent.run()
-    agent.test()
+    agent.run()
+    # agent.test()
