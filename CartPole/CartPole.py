@@ -47,14 +47,14 @@ class DQNAgent:
         self.state_size = self.env.observation_space.shape[0]
         self.action_size = self.env.action_space.n
 
-        self.EPISODES = 1000
-        self.memory = deque(maxlen=2000)
+        self.EPISODES = 100
+        self.memory = deque(maxlen=20000)
 
         self.gamma = 0.95    # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.999
-        self.batch_size = 32
+        self.batch_size = 128
         self.train_start = 1000
 
         # defining model parameters
@@ -241,5 +241,5 @@ class DQNAgent:
 if __name__ == "__main__":
     env_name = 'CartPole-v1'
     agent = DQNAgent(env_name)
-    agent.run()
-    # agent.test()
+    # agent.run()
+    agent.test()
